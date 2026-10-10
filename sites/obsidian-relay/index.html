@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Obsidian Relay</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%278%27 fill=%27%238aa4ff%27/%3E%3Cpath d=%27M16 7l7 9-7 9-7-9z%27 fill=%27%230b1124%27/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    try {
+      const saved = localStorage.getItem("relay-theme");
+      const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.dataset.theme = saved || (dark ? "dark" : "light");
+    } catch (e) {}
+  </script>
+  <script src="config.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <div class="veil" id="veil" aria-hidden="true">
+    <div class="veil-box">
+      <p class="veil-title">Release to stage</p>
+      <p class="veil-sub">Files and whole folders both work.</p>
+    </div>
+  </div>
+
+  <main class="shell">
+    <header class="top">
+      <div class="brand">
+        <h1>Obsidian Relay</h1>
+        <p class="subtitle">Aster packets, transient staging, and sealed retrieval</p>
+      </div>
+      <div class="top-side">
+        <form class="access" id="access-form" autocomplete="off">
+          <div class="access-field" id="access-field">
+            <svg class="access-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            <input id="access-code" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="Access code" aria-label="Access code">
+            <button type="submit" class="access-go" id="access-open">Open</button>
+          </div>
+          <div class="access-chip" id="access-chip" hidden>
+            <span class="chip-dot"></span>
+            <span>Code <strong id="access-chip-code" class="mono">••••••</strong></span>
+            <button type="button" class="chip-close" id="access-close">Close</button>
+          </div>
+        </form>
+        <span class="badge" id="drift-badge">Drift Channel Active</span>
+        <button type="button" id="theme-toggle" class="btn btn-ghost btn-icon" aria-label="Toggle theme">Theme</button>
+      </div>
+    </header>
+
+    <div class="banner" id="banner" hidden></div>
+
+    <section class="layout">
+      <div class="panel compose">
+        <div class="tabs" role="tablist">
+          <button type="button" class="tab-button active" data-tab="text-tab" role="tab">Lumen Input</button>
+          <button type="button" class="tab-button" data-tab="file-tab" role="tab">Quill Transfer</button>
+        </div>
+
+        <div id="text-tab" class="tab-panel">
+          <form id="paste-form" novalidate>
+            <label for="filename">Filename</label>
+            <input id="filename" class="field" type="text" placeholder="notes.txt" autocomplete="off">
+            <label for="content">Content</label>
+            <div class="editor">
+              <textarea id="content" placeholder="Paste text, code, logs, or markdown..." spellcheck="false"></textarea>
+              <div class="editor-foot">
+                <span id="char-count">0 characters · 0 lines</span>
+                <span class="hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> to commit</span>
+              </div>
+            </div>
+            <p class="form-error" id="paste-error" hidden></p>
+            <button type="submit" class="btn btn-primary btn-block" id="paste-submit">Commit Lumen</button>
+          </form>
+        </div>
+
+        <div id="file-tab" class="tab-panel" hidden>
+          <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Select files">
+            <div class="dz-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+            </div>
+            <p class="dz-title">Drop files or folders here</p>
+            <p class="help-text">Encrypted in your browser, sealed into Appwrite Storage.</p>
+            <input id="file-input" class="sr" type="file" multiple tabindex="-1">
+            <input id="folder-input" class="sr" type="file" webkitdirectory directory multiple tabindex="-1">
+            <div class="pickers">
+              <button type="button" id="pick-files" class="btn">Select files</button>
+              <button type="button" id="pick-folder" class="btn">Select folder</button>
+            </div>
+          </div>
+          <div class="queue-wrap" id="queue-wrap" hidden>
+            <div class="queue-head">
+              <span><strong id="queue-count">0</strong> queued <span id="queue-size"></span></span>
+              <button type="button" id="queue-clear" class="btn btn-ghost btn-sm">Clear queue</button>
+            </div>
+            <ul class="queue" id="queue"></ul>
+          </div>
+          <div class="progress" id="progress" hidden><div></div></div>
+          <p class="status" id="upload-status"></p>
+          <button id="upload-button" type="button" class="btn btn-primary btn-block">Send Quill</button>
+        </div>
+      </div>
+
+      <div class="panel index">
+        <div class="index-head">
+          <div>
+            <h3 id="index-title">Aster Index</h3>
+            <p class="summary"><strong id="count">0</strong> item(s) sealed in the cloud <span id="total">(0 B)</span></p>
+          </div>
+          <div class="summary-actions" id="summary-actions" hidden>
+            <button type="button" id="zip-button" class="btn btn-sm">Download all (ZIP)</button>
+            <button type="button" id="clear-button" class="btn btn-sm btn-danger">Reset Drift</button>
+          </div>
+        </div>
+        <div class="toolbar">
+          <input id="search" class="field" type="search" placeholder="Search files..." autocomplete="off">
+          <div class="select">
+            <select id="sort" class="field" aria-label="Sort">
+              <option value="new">Newest</option>
+              <option value="old">Oldest</option>
+              <option value="name">Name</option>
+              <option value="size">Largest</option>
+            </select>
+          </div>
+        </div>
+        <div class="items" id="items"><div class="empty">Connecting…</div></div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="viewer" class="modal modal-wide">
+    <div class="modal-head">
+      <strong id="viewer-title"></strong>
+      <button type="button" class="btn btn-ghost btn-sm" data-close>Close</button>
+    </div>
+    <div class="modal-body viewer-body" id="viewer-body"></div>
+    <div class="modal-foot">
+      <button type="button" class="btn btn-sm" id="viewer-copy">Copy</button>
+      <button type="button" class="btn btn-sm btn-accent" id="viewer-download">Retrieve</button>
+    </div>
+  </dialog>
+
+  <dialog id="storage-dialog" class="modal">
+    <div class="modal-head">
+      <div>
+        <strong>Where should this go?</strong>
+        <p class="modal-sub">Choose a destination for this commit.</p>
+      </div>
+    </div>
+    <div class="modal-body choice-list">
+      <button type="button" class="choice" data-choice="public">
+        <span class="choice-title">Skip</span>
+        <span class="choice-desc">Store in the open Aster Index.</span>
+      </button>
+      <button type="button" class="choice" data-choice="existing">
+        <span class="choice-title">Add to existing access code</span>
+        <span class="choice-desc">Store under a code you already have.</span>
+      </button>
+      <button type="button" class="choice" data-choice="new">
+        <span class="choice-title">Create a new access code</span>
+        <span class="choice-desc">Pick a new 6-digit code and store it there.</span>
+      </button>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn btn-ghost btn-sm" data-choice="cancel">Cancel</button>
+    </div>
+  </dialog>
+
+  <dialog id="code-dialog" class="modal">
+    <form id="code-form" novalidate autocomplete="off">
+      <div class="modal-head">
+        <div>
+          <strong id="code-title">Enter access code</strong>
+          <p class="modal-sub" id="code-sub">Enter the 6-digit code.</p>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="otp" id="otp">
+          <input type="text" inputmode="numeric" maxlength="1" aria-label="Digit 1">
+          <input type="text" inputmode="numeric" maxlength="1" aria-label="Digit 2">
+          <input type="text" inputmode="numeric" maxlength="1" aria-label="Digit 3">
+          <input type="text" inputmode="numeric" maxlength="1" aria-label="Digit 4">
+          <input type="text" inputmode="numeric" maxlength="1" aria-label="Digit 5">
+          <input type="text" inputmode="numeric" maxlength="1" aria-label="Digit 6">
+        </div>
+        <p class="form-error" id="code-error" hidden></p>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-ghost btn-sm" id="code-cancel">Cancel</button>
+        <button type="submit" class="btn btn-sm btn-accent" id="code-submit">Continue</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="confirm-dialog" class="modal">
+    <div class="modal-head">
+      <div>
+        <strong id="confirm-title">Are you sure?</strong>
+        <p class="modal-sub" id="confirm-sub"></p>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn btn-ghost btn-sm" id="confirm-cancel">Cancel</button>
+      <button type="button" class="btn btn-sm btn-danger-solid" id="confirm-ok">Confirm</button>
+    </div>
+  </dialog>
+
+  <div id="toasts" aria-live="polite"></div>
+</body>
+</html>

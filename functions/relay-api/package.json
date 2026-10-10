@@ -1,0 +1,8 @@
+{
+  "name": "relay-api",
+  "version": "2.0.0",
+  "description": "Obsidian Relay backend for Appwrite Functions (zero dependencies)",
+  "type": "module",
+  "main": "src/main.js",
+  "engines": { "node": ">=18" }
+}

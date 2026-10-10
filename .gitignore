@@ -1,0 +1,4 @@
+private_key.pem
+*.pem
+*.tar.gz
+node_modules/

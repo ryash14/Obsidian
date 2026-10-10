@@ -1,0 +1,47 @@
+{
+  "projectId": "<YOUR_PROJECT_ID>",
+  "endpoint": "https://<REGION>.cloud.appwrite.io/v1",
+  "functions": [
+    {
+      "$id": "relay-api",
+      "name": "relay-api",
+      "runtime": "node-22",
+      "execute": ["any"],
+      "events": [],
+      "scopes": [
+        "databases.read", "databases.write",
+        "tables.read", "tables.write",
+        "columns.read", "columns.write",
+        "indexes.read", "indexes.write",
+        "rows.read", "rows.write",
+        "buckets.read", "buckets.write",
+        "files.read", "files.write",
+        "tokens.read", "tokens.write"
+      ],
+      "schedule": "",
+      "timeout": 30,
+      "enabled": true,
+      "logging": true,
+      "entrypoint": "src/main.js",
+      "commands": "",
+      "path": "functions/relay-api"
+    }
+  ],
+  "sites": [
+    {
+      "$id": "obsidian-relay",
+      "name": "Obsidian Relay",
+      "enabled": true,
+      "logging": true,
+      "framework": "other",
+      "timeout": 30,
+      "installCommand": "",
+      "buildCommand": "",
+      "outputDirectory": "./",
+      "buildRuntime": "node-22",
+      "adapter": "static",
+      "fallbackFile": "index.html",
+      "path": "sites/obsidian-relay"
+    }
+  ]
+}
