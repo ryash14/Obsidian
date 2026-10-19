@@ -4,7 +4,23 @@ Obsidian Relay transfers encrypted files through Appwrite with scoped download a
 
 File transfer becomes awkward when the data plane and application API share the same request-size limits. Obsidian uploads ciphertext directly to storage and uses a small function request for the encrypted envelope, metadata and access policy. This separates large-file transfer from authorization logic.
 
-[Quick start](#quick-start) · [How it works](#how-it-works) · [Development](#development) · [Contributing](CONTRIBUTING.md)
+[Preview](#application-preview) · [Quick start](#quick-start) · [Architecture](#architecture-and-request-flow) · [Development](#development) · [Contributing](CONTRIBUTING.md)
+
+## Application preview
+
+![Obsidian Relay browser input panel](docs/screenshots/input-panel.png)
+
+The browser input panel prepares a named text item for the relay. Transfers require a configured Appwrite backend; no transfer is demonstrated here.
+
+[Screenshot notes](docs/screenshots/README.md)
+
+## Capabilities
+
+| Workflow | Result |
+|---|---|
+| Send a file | Encrypt in the browser and upload ciphertext directly to storage. |
+| Control retrieval | Validate item scope, access codes and failed-attempt lockouts. |
+| Recover a file | Authorize a short-lived download and decrypt in the receiving browser. |
 
 ## Quick start
 
@@ -40,14 +56,14 @@ Deploy the function with Node.js 22 and entrypoint `src/main.js`. Set `VAULT_RSA
 
 After deployment, request `/config` on the function domain to check configuration and schema provisioning. Use a small non-sensitive file to verify upload, authorized download and incorrect-code handling before relying on the relay.
 
-## How it works
+## Architecture and request flow
 
 1. The browser encrypts each file with a fresh AES-GCM key and wraps that key for the function.
 2. Ciphertext uploads directly to Appwrite Storage in chunks.
 3. The relay function validates the envelope and records the item under the open index or an access code.
 4. A later request is authorized before a short-lived file token and content key are returned. The browser decrypts the downloaded file.
 
-### Component boundaries
+### Component model
 
 ```mermaid
 sequenceDiagram
@@ -66,7 +82,7 @@ sequenceDiagram
     B->>B: Decrypt and save
 ```
 
-### Design decisions
+### Engineering decisions
 
 Appwrite Storage holds ciphertext; the database holds item metadata, keyed access-code hashes and failed-attempt state. The function provisions its schema and bucket on first use when its scopes permit it.
 
